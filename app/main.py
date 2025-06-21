@@ -1,15 +1,6 @@
-from typing import Union, Any
-
 from fastapi import FastAPI
+from app.router.projects import project_router
 
-app = FastAPI()
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None) -> dict[str, Any]:
-    return {"item_id": item_id, "q": q}
+app: FastAPI = FastAPI()
+## Adiciona a rota
+app.include_router(project_router)

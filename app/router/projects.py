@@ -1,6 +1,6 @@
 from http import HTTPStatus
-from typing import Annotated
 from datetime import datetime
+from typing import Annotated
 import uuid
 
 from fastapi import APIRouter, HTTPException, Query
@@ -14,11 +14,27 @@ database: list[ProjectDB] = []
 # Obtém todos os projetos - falta o filtro
 @project_router.get("/", status_code=HTTPStatus.OK, response_model=ProjectList)
 def read_all_projects(filter_query: Annotated[FilterParams, Query()]):
-    # skip=None limit=None status=None priority=None
+    projects: list[ProjectDB] = []
 
-    filtered_projects: list[ProjectDB] = [] # type: ignore
-    # percorre todos os itens de database e adiciona ao filtered apenas os que atenderem os requisitos de filter_query
-    return {"projects": database}
+    ## Configura o skip
+    if filter_query.skip:
+        projects = database[filter_query.skip:]
+    else:
+        projects = database
+    
+    ## Filtra pelo status
+    if filter_query.status:
+        projects = [p for p in projects if p.status == filter_query.status]
+
+    ## Filtra pela prioridade
+    if filter_query.priority:
+        projects = [p for p in projects if p.priority == filter_query.priority]
+
+    ## Define um limite para retorno
+    if filter_query.limit:
+        projects = projects[:filter_query.limit]
+
+    return {"projects": projects}
 
 
 # Obtém somente um projeto - ok
@@ -54,7 +70,7 @@ def create_project(project: Project):
 @project_router.put("/{project_id}", status_code=HTTPStatus.OK, response_model=ProjectDB)
 def update_project(project_id: uuid.UUID):
     ## TODO: tentar fazer isso da melhor forma
-    for index, project in enumerate(database):
+    for project in database:
         if project.id == project_id:
             return project
 

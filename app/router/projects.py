@@ -11,7 +11,7 @@ project_router: APIRouter = APIRouter(prefix="/projects")
 database: list[ProjectDB] = []
 
 
-# Obtém todos os projetos - falta o filtro
+# Obtém todos os projetos - ok
 @project_router.get("/", status_code=HTTPStatus.OK, response_model=ProjectList)
 def read_all_projects(filter_query: Annotated[FilterParams, Query()]):
     projects: list[ProjectDB] = []

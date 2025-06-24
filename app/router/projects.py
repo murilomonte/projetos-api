@@ -18,10 +18,10 @@ def read_all_projects(filter_query: Annotated[FilterParams, Query()]):
 
     ## Configura o skip
     if filter_query.skip:
-        projects = database[filter_query.skip:]
+        projects = database[filter_query.skip :]
     else:
         projects = database
-    
+
     ## Filtra pelo status
     if filter_query.status:
         projects = [p for p in projects if p.status == filter_query.status]
@@ -32,21 +32,21 @@ def read_all_projects(filter_query: Annotated[FilterParams, Query()]):
 
     ## Define um limite para retorno
     if filter_query.limit:
-        projects = projects[:filter_query.limit]
+        projects = projects[: filter_query.limit]
 
     return {"projects": projects}
 
 
 # Obtém somente um projeto - ok
-@project_router.get("/{project_id}", status_code=HTTPStatus.OK, response_model=ProjectDB)
+@project_router.get(
+    "/{project_id}", status_code=HTTPStatus.OK, response_model=ProjectDB
+)
 def read_project(project_id: uuid.UUID):
     ## TODO: tentar fazer isso da melhor forma
     for project in database:
         if project.id == project_id:
             return project
-    raise HTTPException(
-        status_code=HTTPStatus.NOT_FOUND, detail='Project not found'
-    )
+    raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Project not found")
 
 
 # Cria um projeto - ok
@@ -58,7 +58,7 @@ def create_project(project: Project):
         description=project.description,
         priority=project.priority,
         status=project.status,
-        created_at=datetime.now()
+        created_at=datetime.now(),
     )
 
     database.append(new_project)
@@ -67,16 +67,30 @@ def create_project(project: Project):
 
 
 # Atualiza um projeto - ok
-@project_router.put("/{project_id}", status_code=HTTPStatus.OK, response_model=ProjectDB)
-def update_project(project_id: uuid.UUID):
+@project_router.put(
+    "/{project_id}", status_code=HTTPStatus.OK, response_model=ProjectDB
+)
+def update_project(project: Project, project_id: uuid.UUID):
     ## TODO: tentar fazer isso da melhor forma
-    for project in database:
-        if project.id == project_id:
-            return project
+    for index, item in enumerate(database):
+        if item.id == project_id:
+            new_project = ProjectDB(
+                id=item.id,  ## ← Gambiarra
+                title=project.title,
+                description=project.description,
+                priority=project.priority,
+                status=project.status,
+                created_at=item.created_at,  ## ← Gambiarra
+            )
 
-    raise HTTPException(
-        status_code=HTTPStatus.NOT_FOUND, detail='Project not found'
-    )
+            ## Remove o objeto anterior
+            database.pop(index)
+
+            ## Adiciona o novo objeto com os campos alterados
+            database.append(new_project)
+            return new_project
+
+    raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Project not found")
 
 
 # Deleta um projeto - ok
@@ -93,6 +107,5 @@ def delete_project(project_id: uuid.UUID):
 
     if not found:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Project not found'
+            status_code=HTTPStatus.NOT_FOUND, detail="Project not found"
         )
-        

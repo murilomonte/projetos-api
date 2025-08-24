@@ -1,2 +1,2 @@
-# av1-tep
- Av1 da avaliação de Tópicos Especiais em Programação
+# projetos-api
+API para gerenciamento de projetos feita como av1 de Tópicos Especiais em Programação 
